@@ -1,5 +1,10 @@
 #!/usr/bin/bash
 
+__CONSOLE_SHORT_OPT_INDEX=0
+__CONSOLE_LONG_OPT_INDEX=1
+__CONSOLE_IS_FLAG_INDEX=2
+__CONSOLE_TARGET_VARIABLE_INDEX=3
+
 function __console_parse_parameters {
     getopt --test > /dev/null
     if [[ $? -ne 4 ]]; then
@@ -7,9 +12,8 @@ function __console_parse_parameters {
         exit 1
     fi
 
+    # First parameter must be the options string passed to the calling script, store it and advance 1
     INPUT=$1
-    #echo "INPUT: $INPUT"
-    #echo "ROS2_RMW: "$ROS2_RMW
     shift
 
     OPTIONS=""
@@ -17,87 +21,68 @@ function __console_parse_parameters {
 
     PARAMETER_DEFINITIONS=${@:1}
 
+    # Build the parameter strings for getopt and set uninitialized variables to default values
     for var in $PARAMETER_DEFINITIONS; do
         declare -n optionArray=$var
-        #echo "Array: ${optionArray[@]}"
-        #echo "Short Option: "${optionArray[0]}
-        #echo "Long Option: "${optionArray[1]}
-        #echo "Param: "${optionArray[2]}
-        #echo "Required Param: "${optionArray[3]}
-        #echo "Single Value: "${optionArray[3]}
-        #echo "Single Value Expanded: "${!optionArray[3]}
-        #DELIM=""
-        #[[ ${optionArray[2]} == true && ${optionArray[2]} == false ]] && DELIM="::"
-        [[ ${optionArray[2]} == true && ${optionArray[2]} == true ]] && DELIM=":" || DELIM=""
-        OPTIONS="$OPTIONS${optionArray[0]}$DELIM"
-        LONGOPTIONS="$LONGOPTIONS${optionArray[1]},"
-
-        #declare ${optionArray[2]}="bla"
+        [[ ${optionArray[__CONSOLE_IS_FLAG_INDEX]} == false ]] && DELIM=":" || DELIM=""
+        OPTIONS="$OPTIONS${optionArray[__CONSOLE_SHORT_OPT_INDEX]}$DELIM"
+        LONGOPTIONS="$LONGOPTIONS${optionArray[__CONSOLE_LONG_OPT_INDEX]}$DELIM,"
+        if [[ -z ${!optionArray[__CONSOLE_TARGET_VARIABLE_INDEX]+x} ]]; then
+            if [[ ${optionArray[__CONSOLE_IS_FLAG_INDEX]} == true ]]; then
+                printf -v "${optionArray[__CONSOLE_TARGET_VARIABLE_INDEX]}" %s "false"
+            else
+                printf -v "${optionArray[__CONSOLE_TARGET_VARIABLE_INDEX]}" %s ""
+            fi
+        fi
     done
 
-    # First parameter must be the options string passed to the calling script
-    #echo "$OPTIONS"
-    #echo "$LONGOPTIONS"
 
 
     # -temporarily store output to be able to check for errors
     # -e.g. use “--options” parameter by name to activate quoting/enhanced mode
-    # -pass arguments only via   -- "$@"   to separate them correctly
-    PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTIONS --name "$0" -- $INPUT)
+    PARSED=$(getopt --options=$OPTIONS --long=$LONGOPTIONS --name "$0" -- $INPUT)
     if [[ $? != 0 ]]; then
         # e.g. $? == 1
         #  then getopt has complained about wrong arguments to stdout
         exit 2
     fi
     # read getopt’s output this way to handle the quoting right:
-    #echo "$PARSED"
-    #set -f
-    #array=("${PARSED//--/ }")
-    #echo $array
     eval set -- "$PARSED"
 
-    COUNT=0
-    NEXT=0
+    # Now run through all the parsed parameters...
     while true; do
         if [[ $1 == "--" ]]; then
             break
         fi
-        #echo "Current param: $1"
-        SHIFT_EXTRA=false
+        SHIFT_BY=1
+        # ...and check them against the configured options passed into this function
         for option in $PARAMETER_DEFINITIONS; do
             declare -n optionArray="$option"
             #echo "Array: ${optionArray[@]}"
-            #echo "Short Option: "${optionArray[0]}
-            #echo "Long Option: "${optionArray[1]}
-            #echo "Param: "${optionArray[2]}
-            #echo "Required Param: "${optionArray[3]}
-            #echo "Single Value: "${optionArray[3]}
-            #echo "Single Value Expanded: "${!optionArray[3]}
-            #echo "Checking -"${optionArray[0]}" equal to $1"
-            #echo "Checking --"${optionArray[1]}" equal to $1"
-            if [[ "-"${optionArray[0]} == $1 || "--"${optionArray[1]} == $1 ]]; then
-                #echo "Taking value: "$2
-                #echo "First character: ${2:0:1}"
-                #eval "${optionArray[3]}=$2"
-                #echo "varname: $varname"
-                #typeset -n $varname=$2
-                if [[ ${2:0:1} != "-" && ${optionArray[2]} == true ]]; then
-                    printf -v "${optionArray[3]}" %s "$2"
-                    #echo "Set to: "${!optionArray[3]}
-                    SHIFT_EXTRA=true
-                elif [[ ${2:0:1} == "-" && ${optionArray[2]} == false ]]; then
-                    printf -v "${optionArray[3]}" %s "true"
+            #echo "Short Option: "${optionArray[__CONSOLE_SHORT_OPT_INDEX]}
+            #echo "Long Option: "${optionArray[__CONSOLE_LONG_OPT_INDEX]}
+            #echo "Param: "${optionArray[__CONSOLE_IS_FLAG_INDEX]}
+            #echo "Single Value: "${optionArray[__CONSOLE_TARGET_VARIABLE_INDEX]}
+            #echo "Single Value Expanded: "${!optionArray[__CONSOLE_TARGET_VARIABLE_INDEX]}
+            #echo "Checking -"${optionArray[__CONSOLE_SHORT_OPT_INDEX]}" equal to $1"
+            #echo "Checking --"${optionArray[__CONSOLE_LONG_OPT_INDEX]}" equal to $1"
+            #echo "Possible parameter value would be: $2"
+            if [[ "-"${optionArray[__CONSOLE_SHORT_OPT_INDEX]} == $1 || "--"${optionArray[__CONSOLE_LONG_OPT_INDEX]} == $1 ]]; then
+                if [[ ${2:0:1} != "-" && ${optionArray[__CONSOLE_IS_FLAG_INDEX]} == false ]]; then
+                    # A parameter is required for the current opition, so read it and advance the pointer by 2
+                    printf -v "${optionArray[__CONSOLE_TARGET_VARIABLE_INDEX]}" %s "$2"
+                    SHIFT_BY=2
+                elif [[ ${2:0:1} == "-" && ${optionArray[__CONSOLE_IS_FLAG_INDEX]} == true ]]; then
+                    # The current option is only a flag, so set it and advance the pointer by 1
+                    printf -v "${optionArray[__CONSOLE_TARGET_VARIABLE_INDEX]}" %s "true"
+                else
+                    # An error occured, which getopt should have caught
+                    echo "A required parameter is missing. Exit."
+                    exit 3
                 fi
             fi
         done
-        if [[ $SHIFT_EXTRA == true ]]; then
-            #echo "Performing additional shift"
-            shift 2
-        else
-            shift
-        fi
+        shift $SHIFT_BY
 
     done
-
-    #echo "ROS2_RMW: "$ROS2_RMW
 }

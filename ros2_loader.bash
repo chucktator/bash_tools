@@ -82,14 +82,14 @@ function ros2_global_setup {
 
 function r2 {
     __ros2_read_config
-    # param = (SHORT_OPTION LONG_OPTION PARAMETER OVERWRITE TARGET_VARIABLE)
-    testVariable=false
-    param=("m" "middleware" true ROS2_RMW)
+    # param = (SHORT_OPTION LONG_OPTION IS_FLAG TARGET_VARIABLE)
+    #testVariable=false
+    param=("m" "middleware" false ROS2_RMW)
     paramTEST=("t" "testing" false testVariable)
-    #echo "TEST: "$testVariable
-    param2=("d" "basedir" true ROS2_BASE_DIR)
-    param3=("w" "workspace" true ROS2_WS_SETUP)
-    param4=("i" "installdir" true ROS2_INSTALL_DIR)
+    echo "TEST: "$testVariable
+    param2=("d" "basedir" false ROS2_BASE_DIR)
+    param3=("w" "workspace" false ROS2_WS_SETUP)
+    param4=("i" "installdir" false ROS2_INSTALL_DIR)
     #echo "Providing INPUT: $*"
     __console_parse_parameters "$*" param param2 param3 param4 paramTEST
     echo "TEST: "$testVariable
