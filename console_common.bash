@@ -2,10 +2,10 @@
 
 __CONSOLE_SHORT_OPT_INDEX=0
 __CONSOLE_LONG_OPT_INDEX=1
-__CONSOLE_IS_FLAG_INDEX=2
-__CONSOLE_TARGET_VARIABLE_INDEX=3
+__CONSOLE_IS_FLAG_INDEX=3
+__CONSOLE_TARGET_VARIABLE_INDEX=2
 
-function __console_parse_parameters {
+__console_parse_parameters() {
     getopt --test > /dev/null
     if [[ $? -ne 4 ]]; then
         echo "I’m sorry, `getopt --test` failed in this environment."
@@ -16,73 +16,63 @@ function __console_parse_parameters {
     INPUT=$1
     shift
 
-    OPTIONS=""
-    LONGOPTIONS=""
+    OPTIONS="h"
+    LONGOPTIONS="help"
 
     PARAMETER_DEFINITIONS=${@:1}
-
-    # Build the parameter strings for getopt and set uninitialized variables to default values
-    for var in $PARAMETER_DEFINITIONS; do
-        declare -n optionArray=$var
-        [[ ${optionArray[__CONSOLE_IS_FLAG_INDEX]} == false ]] && DELIM=":" || DELIM=""
-        OPTIONS="$OPTIONS${optionArray[__CONSOLE_SHORT_OPT_INDEX]}$DELIM"
-        LONGOPTIONS="$LONGOPTIONS${optionArray[__CONSOLE_LONG_OPT_INDEX]}$DELIM,"
-        if [[ -z ${!optionArray[__CONSOLE_TARGET_VARIABLE_INDEX]+x} ]]; then
-            if [[ ${optionArray[__CONSOLE_IS_FLAG_INDEX]} == true ]]; then
-                printf -v "${optionArray[__CONSOLE_TARGET_VARIABLE_INDEX]}" %s "false"
-            else
-                printf -v "${optionArray[__CONSOLE_TARGET_VARIABLE_INDEX]}" %s ""
-            fi
-        fi
+    INPUT_PARTS=()
+    for word in $INPUT; do
+        INPUT_PARTS+=("$word")
     done
+    INPUT_PARTS+=("--")
 
-
-
-    # -temporarily store output to be able to check for errors
-    # -e.g. use “--options” parameter by name to activate quoting/enhanced mode
-    PARSED=$(getopt --options=$OPTIONS --long=$LONGOPTIONS --name "$0" -- $INPUT)
-    if [[ $? != 0 ]]; then
-        # e.g. $? == 1
-        #  then getopt has complained about wrong arguments to stdout
-        exit 2
-    fi
-    # read getopt’s output this way to handle the quoting right:
-    eval set -- "$PARSED"
-
-    # Now run through all the parsed parameters...
-    while true; do
-        if [[ $1 == "--" ]]; then
+    for ((i=0; i<${#INPUT_PARTS[@]}; i++)); do
+        #echo "Part $i: ${INPUT_PARTS[$i]}"
+        if [[ ${INPUT_PARTS[$i]} == "--" ]]; then
             break
         fi
-        SHIFT_BY=1
-        # ...and check them against the configured options passed into this function
         for option in $PARAMETER_DEFINITIONS; do
             declare -n optionArray="$option"
             #echo "Array: ${optionArray[@]}"
             #echo "Short Option: "${optionArray[__CONSOLE_SHORT_OPT_INDEX]}
             #echo "Long Option: "${optionArray[__CONSOLE_LONG_OPT_INDEX]}
-            #echo "Param: "${optionArray[__CONSOLE_IS_FLAG_INDEX]}
+            #echo "Is Flag: "${optionArray[__CONSOLE_IS_FLAG_INDEX]}
             #echo "Single Value: "${optionArray[__CONSOLE_TARGET_VARIABLE_INDEX]}
             #echo "Single Value Expanded: "${!optionArray[__CONSOLE_TARGET_VARIABLE_INDEX]}
-            #echo "Checking -"${optionArray[__CONSOLE_SHORT_OPT_INDEX]}" equal to $1"
-            #echo "Checking --"${optionArray[__CONSOLE_LONG_OPT_INDEX]}" equal to $1"
-            #echo "Possible parameter value would be: $2"
-            if [[ "-"${optionArray[__CONSOLE_SHORT_OPT_INDEX]} == $1 || "--"${optionArray[__CONSOLE_LONG_OPT_INDEX]} == $1 ]]; then
-                if [[ ${2:0:1} != "-" && ${optionArray[__CONSOLE_IS_FLAG_INDEX]} == false ]]; then
+            #echo "Checking -"${optionArray[__CONSOLE_SHORT_OPT_INDEX]}" equal to ${INPUT_PARTS[$i]}"
+            #echo "Checking --"${optionArray[__CONSOLE_LONG_OPT_INDEX]}" equal to ${INPUT_PARTS[$i]}"
+            #echo "Possible parameter value would be: ${INPUT_PARTS[$((i+1))]}"
+            if [[ "-"${optionArray[__CONSOLE_SHORT_OPT_INDEX]} == ${INPUT_PARTS[$i]} || "--"${optionArray[__CONSOLE_LONG_OPT_INDEX]} == ${INPUT_PARTS[$i]} ]]; then
+                #echo "Examined character: ${INPUT_PARTS[(($i+1))]:0:1}"
+                #echo "Is Flag: ${optionArray[__CONSOLE_IS_FLAG_INDEX]}"
+                if [[ ${INPUT_PARTS[(($i+1))]:0:1} != "-" && ${optionArray[__CONSOLE_IS_FLAG_INDEX]} == false ]]; then
+                    #echo "Case 1"
                     # A parameter is required for the current opition, so read it and advance the pointer by 2
-                    printf -v "${optionArray[__CONSOLE_TARGET_VARIABLE_INDEX]}" %s "$2"
-                    SHIFT_BY=2
-                elif [[ ${2:0:1} == "-" && ${optionArray[__CONSOLE_IS_FLAG_INDEX]} == true ]]; then
+                    printf -v "${optionArray[__CONSOLE_TARGET_VARIABLE_INDEX]}" %s ""
+                    while [[ ${INPUT_PARTS[(($i+1))]:0:1} != "-" ]]; do
+                        #echo "Possible parameter value would be: ${INPUT_PARTS[$((i+1))]}"
+                        if [ -n "${!optionArray[__CONSOLE_TARGET_VARIABLE_INDEX]}" ]; then
+                            printf -v "${optionArray[__CONSOLE_TARGET_VARIABLE_INDEX]}" %s "${!optionArray[__CONSOLE_TARGET_VARIABLE_INDEX]} ${INPUT_PARTS[$((i+1))]}"
+                        else
+                            printf -v "${optionArray[__CONSOLE_TARGET_VARIABLE_INDEX]}" %s "${INPUT_PARTS[$((i+1))]}"
+                        fi
+                        #echo "i is now: $i"
+                        ((i++))
+                        #echo "i is now: $i"
+                        #echo "Next Possible: ${INPUT_PARTS[$((i+1))]}"
+                    done
+                    #echo "Wrote follwing to variable: ${!optionArray[__CONSOLE_TARGET_VARIABLE_INDEX]}"
+                elif [[ ${INPUT_PARTS[(($i+1))]:0:1} == "-" && ${optionArray[__CONSOLE_IS_FLAG_INDEX]} == true ]]; then
+                    #echo "Case 2"
                     # The current option is only a flag, so set it and advance the pointer by 1
                     printf -v "${optionArray[__CONSOLE_TARGET_VARIABLE_INDEX]}" %s "true"
                 else
+                    #echo "Case 3"
                     # An error occured, which getopt should have caught
                     echo "A required parameter is missing. Exit."
                     exit 3
                 fi
             fi
         done
-        shift $SHIFT_BY
-
     done
 }
