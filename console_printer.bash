@@ -1,41 +1,46 @@
-__CONSOLE_PRINTER_LINE_LENGTH=60
+__CONSOLE_PRINTER_LINE_LENGTH=110
 __CONSOLE_PRINTER_NO_ECHO=false
 
-__console_printer() {
+function __console_printer() {
     if [ "$__CONSOLE_PRINTER_NO_ECHO" != true ] ; then
-        echo -n "##  $1"
-        for ((i=0; i < $[$__CONSOLE_PRINTER_LINE_LENGTH - 8 - ${#1}]; i++)); do
-            echo -n " "
+        echo -e -n "**  $1"
+        COUNTER=0
+        SPACES=$(($__CONSOLE_PRINTER_LINE_LENGTH - 8 - ${#1}))
+        while [[ $COUNTER -lt $SPACES ]]; do
+            echo -e -n " "
+            let "COUNTER++"
         done
-        echo "  ##"
+        echo -e "  **"
     fi
 }
 
-__console_centered_printer() {
+function __console_centered_printer() {
     if [ "$__CONSOLE_PRINTER_NO_ECHO" != true ] ; then
-        echo -n "##"
+        echo -e -n "**"
         FIRST_SPACES_LENGTH=$[($__CONSOLE_PRINTER_LINE_LENGTH - 4 - ${#1}) / 2]
         for ((i=0; i < $FIRST_SPACES_LENGTH; i++)); do
-            echo -n " "
+            echo -e -n " "
         done
-        echo -n "$1"
+        echo -e -n "$1"
         LAST_SPACES_LENGTH=$[$__CONSOLE_PRINTER_LINE_LENGTH - 4 - ${#1} - $FIRST_SPACES_LENGTH]
         for ((i=0; i < $LAST_SPACES_LENGTH; i++)); do
-            echo -n " "
+            echo -e -n " "
         done
-        echo "##"
+        echo -e "**"
     fi
 }
 
-__console_box_printer() {
+function __console_box_printer() {
     __console_box_line_printer
-    __console_centered_printer "$1"
+    __console_centered_printer "$*"
     __console_box_line_printer
 }
 
-__console_box_line_printer() {
-    for ((i=0; i < $[$__CONSOLE_PRINTER_LINE_LENGTH - ${#1}]; i++)); do
-        echo -n "#"
+function __console_box_line_printer() {
+    COUNTER=0
+    while [[ $COUNTER -lt $__CONSOLE_PRINTER_LINE_LENGTH ]]; do
+        echo -n "*"
+        let "COUNTER++"
     done
-    echo ""
+    echo -e ""
 }
