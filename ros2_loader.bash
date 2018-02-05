@@ -8,12 +8,12 @@ source $DIR/console_common.bash
 __CONSOLE_PRINTER_NO_ECHO=$ROS_NO_ECHO
 
 function __ros2_greeter() {
-    __console_box_printer "ROS2 CLI Loader"
-    __console_printer
+    __console_box_printer "ROS2 CLI Loader.."
+    __console_frame_printer
 }
 
 function __ros2_finisher() {
-    __console_printer
+    __console_frame_printer
     __console_box_printer "Finished loading ROS2 CLI."
 }
 
@@ -27,7 +27,7 @@ function __ros2_common() {
     # Correct expansion of home folder macro in config parameters
     ROS2_INSTALL_DIR="${ROS2_INSTALL_DIR/#\~/$HOME}"
 
-    __console_printer "Loading autcompletion macros..."
+    __console_frame_printer "Loading autcompletion macros..."
     source $ROS2_INSTALL_DIR"share/ros2cli/environment/ros2-argcomplete.bash"
 
     # Load the configured ROS DDS middleware implementation
@@ -52,48 +52,47 @@ function ros2_dds_default() {
 }
 
 function ros2_dds_rtps() {
-    __console_printer "ROS2 Middleware DDS: Loading eProsima Fast RTPS..."
+    __console_frame_printer "ROS2 Middleware DDS: Loading eProsima Fast RTPS..."
     export RMW_IMPLEMENTATION=rmw_fastrtps_cpp
 }
 
 function ros2_dds_rti() {
-    __console_printer "ROS2 Middleware DDS: Loading RTI Connext..."
+    __console_frame_printer "ROS2 Middleware DDS: Loading RTI Connext..."
     export RTI_LICENSE_FILE=$RTI_LICENSE
     source ${RTI_SCRIPT/#\~/$HOME} &> /dev/null
     export RMW_IMPLEMENTATION=rmw_connext_cpp
 }
 
 function ros2_dds_opensplice() {
-    __console_printer "ROS2 Middleware DDS: Loading PrismTech OpenSplice..."
+    __console_frame_printer "ROS2 Middleware DDS: Loading PrismTech OpenSplice..."
     export RMW_IMPLEMENTATION=rmw_opensplice_cpp
 }
 
 function ros2_local_setup() {
     __ros2_common
-    __console_printer "ROS2: Setting up local workspace..."
+    __console_frame_printer "ROS2: Setting up local workspace..."
     source $ROS2_INSTALL_DIR"local_setup.bash"
 }
 
 function ros2_global_setup() {
     __ros2_common
-    __console_printer "ROS2: Setting up global workspace..."
+    __console_frame_printer "ROS2: Setting up global workspace..."
     source $ROS2_INSTALL_DIR"setup.bash"
 }
 
 function r2() {
     __ros2_read_config
-    # param = (SHORT_OPTION LONG_OPTION TARGET_VARIABLE IS_FLAG OPTS)
+    # param = (SHORT_OPTION LONG_OPTION TARGET_VARIABLE IS_FLAG DOC OPTS)
     # IDEAS:
     # - Read config file too
     # - Print help automatically (DOC-Entry)
-    # - ? howto provide additional options
     #testVariable=false
-    param=("m" "middleware" ROS2_RMW false "--no-overwrite")
-    paramTEST=("t" "testing" testVariable false  "--no-overwrite")
+    param=("m" "middleware" ROS2_RMW false "Choose the RMW implementation for ROS2 to use" "--no-overwrite")
+    paramTEST=("t" "testing" testVariable false "This is merely a test parameter." "--no-overwrite")
     #echo "TEST: "$testVariable
-    param2=("d" "basedir" ROS2_BASE_DIR false "")
-    param3=("w" "workspace" ROS2_WS_SETUP false "")
-    param4=("i" "installdir" ROS2_INSTALL_DIR false "")
+    param2=("d" "basedir" ROS2_BASE_DIR false "Specify the base directory of the ROS2 installation." "")
+    param3=("w" "workspace" ROS2_WS_SETUP false "Specify whether ROS2 should setup a global or local workspace definition." "")
+    param4=("i" "installdir" ROS2_INSTALL_DIR false  "Specifiy the install location of ROS2.")
     #echo "Providing INPUT: $*"
     __console_parse_parameters "$*" param param2 param3 param4 paramTEST
     #echo "TEST: "$testVariable
