@@ -24,9 +24,7 @@ LIGHT_GRAY='\033[0;37m'
 LIGHT_BLUE='\033[1;34m'
 NC='\033[0m' # No Color
 
-__CONSOLE_LOG_LEVEL=11
-
-function __console_debug() {  # (level[color], tag, message)
+function __console_log() {  # (level[color], tag, message)
     COLOR=$NC
     STRING=${@:3}
     LEVEL_IS_COLOR=false
@@ -57,8 +55,8 @@ function __console_debug() {  # (level[color], tag, message)
     if [[ "${!LEVEL_INPUT}" -ge "$__CONSOLE_LOG_LEVEL" || "$LEVEL_IS_COLOR" == true  ]]; then
         echo -e -n ${COLOR}
         levelName="__CONSOLE_DEBUG_TAG_"$LEVEL_INPUT
-        __console_pad_text_balanced levelPadded 10 ${!levelName}
-        __console_pad_text_right tagPadded 15 "$2"
+        __console_pad_text_balanced levelPadded 9 ${!levelName}
+        __console_pad_text_right tagPadded 20 "$2"
         echo -e "[$levelPadded] # $tagPadded:  ${STRING}"
         echo -e -n ${NC}
     fi

@@ -85,19 +85,27 @@ function r2() {
     # param = (SHORT_OPTION LONG_OPTION TARGET_VARIABLE IS_FLAG DOC OPTS)
     # IDEAS:
     # - Read config file too
-    # - Print help automatically (DOC-Entry)
-    #testVariable=false
+    # - "--default OSplice --required"
+    # testVariable=false
+
+    # -n, --no-overwrite        Never overwrite an existing value (including by default and passed values)
+    # -r, --required            This parameter must be passed
+    # -d, --default             If the parameter is not passed, then set it to the given default value
+
+    __console_log "WARNING" "ROS2 Loader" "Configured Middleware is: $ROS2_RMW"
+    __console_log "WARNING" "ROS2 Loader" "test variable is: $testVariable"
     param=("m" "middleware" ROS2_RMW false "Choose the RMW implementation for ROS2 to use" "--no-overwrite")
-    paramTEST=("t" "testing" testVariable false "This is merely a test parameter." "--no-overwrite")
+    paramTEST=("t" "testing" testVariable false "This is merely a test parameter." "--default bla")
     #echo "TEST: "$testVariable
     param2=("d" "basedir" ROS2_BASE_DIR false "Specify the base directory of the ROS2 installation." "")
     param3=("w" "workspace" ROS2_WS_SETUP false "Specify whether ROS2 should setup a global or local workspace definition." "")
-    param4=("i" "installdir" ROS2_INSTALL_DIR false  "Specifiy the install location of ROS2.")
+    param4=("i" "installdir" ROS2_INSTALL_DIR false  "Specify the install location of ROS2.")
     #echo "Providing INPUT: $*"
     __console_parse_parameters "$*" param param2 param3 param4 paramTEST
     #echo "TEST: "$testVariable
     # (m middleware true ${!ROS2_RMW}) (d basedir true ${!ROS2_BASE_DIR}) (w workspace true ${!ROS2_WS_SETUP}) (i installdir true ${!ROS2_INSTALL_DIR})
-
+    __console_log "WARNING" "ROS2 Loader" "Selected Middleware is: $ROS2_RMW"
+    __console_log "WARNING" "ROS2 Loader" "test variable is: $testVariable"
     __ros2_greeter
     case $ROS2_WS_SETUP in
         "Global")
