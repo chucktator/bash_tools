@@ -107,6 +107,7 @@ function r2() {
     __console_log "WARNING" "ROS2 Loader" "Selected Middleware is: $ROS2_RMW"
     __console_log "WARNING" "ROS2 Loader" "test variable is: $testVariable"
     __ros2_greeter
+    source "/opt/ros/${ROS2_DISTRO}/setup.bash"
     case $ROS2_WS_SETUP in
         "Global")
             ros2_global_setup
