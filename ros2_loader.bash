@@ -27,8 +27,11 @@ function __ros2_common() {
     # Correct expansion of home folder macro in config parameters
     ROS2_INSTALL_DIR="${ROS2_INSTALL_DIR/#\~/$HOME}"
 
-    __console_frame_printer "Loading autcompletion macros..."
-    source $ROS2_INSTALL_DIR"share/ros2cli/environment/ros2-argcomplete.bash"
+    #__console_frame_printer "Loading autcompletion macros..."
+    #source $ROS2_INSTALL_DIR"share/ros2cli/environment/ros2-argcomplete.bash"
+
+    __console_frame_printer "ROS2: Loading tools..."
+    source "/opt/ros/${ROS2_DISTRO}/setup.bash"
 
     # Load the configured ROS DDS middleware implementation
     case $ROS2_RMW in
@@ -107,7 +110,7 @@ function r2() {
     __console_log "WARNING" "ROS2 Loader" "Selected Middleware is: $ROS2_RMW"
     __console_log "WARNING" "ROS2 Loader" "test variable is: $testVariable"
     __ros2_greeter
-    source "/opt/ros/${ROS2_DISTRO}/setup.bash"
+
     case $ROS2_WS_SETUP in
         "Global")
             ros2_global_setup
