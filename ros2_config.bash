@@ -9,10 +9,12 @@ ROS2_BASE_DIR="~/ros2_ws/"
 
 ROS2_NO_ECHO=false
 
+ROS2_DISTRO="bouncy"
+
 ## Set the setup script to be used, either:
 ## - Global:		Assuming one workspace, this sets up the workspace globally
 ## - Local:			Useful when using multiple ROS2 worskspaces
-ROS2_WS_SETUP="Local"
+ROS2_WS_SETUP="Global"
 
 ROS2_INSTALL_DIR=$ROS2_BASE_DIR"install/"
 
