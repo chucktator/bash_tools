@@ -131,7 +131,7 @@ function __console_parse_parameters() {  # (input, options[...])
     done
 
     if [[ $PARAM_ERROR == true ]]; then
-        exit 1
+        return 10
     fi
 
     for ((i=0; i<${#INPUT_PARTS[@]}; i++)); do
@@ -153,7 +153,7 @@ function __console_parse_parameters() {  # (input, options[...])
                 __console_print_text_padded_right 25 false "-${optionArray[__CONSOLE_SHORT_OPT_INDEX]}, --${optionArray[__CONSOLE_LONG_OPT_INDEX]}"
                 __console_print_text true "${optionArray[__CONSOLE_DOC_INDEX]}"
             done
-            exit 0
+            return 1
         fi
 
         local OPTION_KEY="${INPUT_PARTS[$i]}"

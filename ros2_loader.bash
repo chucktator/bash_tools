@@ -105,19 +105,23 @@ function r2() {
     param4=("i" "installdir" ROS2_INSTALL_DIR false  "Specify the install location of ROS2.")
     #echo "Providing INPUT: $*"
     __console_parse_parameters "$*" param param2 param3 param4 paramTEST
-    #echo "TEST: "$testVariable
-    # (m middleware true ${!ROS2_RMW}) (d basedir true ${!ROS2_BASE_DIR}) (w workspace true ${!ROS2_WS_SETUP}) (i installdir true ${!ROS2_INSTALL_DIR})
-    __console_log "WARNING" "ROS2 Loader" "Selected Middleware is: $ROS2_RMW"
-    __console_log "WARNING" "ROS2 Loader" "test variable is: $testVariable"
-    __ros2_greeter
+    # Get return value of parameter parser
+    result=$?
+    if [[ $result == 0 ]]; then
+      #echo "TEST: "$testVariable
+      # (m middleware true ${!ROS2_RMW}) (d basedir true ${!ROS2_BASE_DIR}) (w workspace true ${!ROS2_WS_SETUP}) (i installdir true ${!ROS2_INSTALL_DIR})
+      __console_log "WARNING" "ROS2 Loader" "Selected Middleware is: $ROS2_RMW"
+      __console_log "WARNING" "ROS2 Loader" "test variable is: $testVariable"
+      __ros2_greeter
 
-    case $ROS2_WS_SETUP in
-        "Global")
-            ros2_global_setup
-            ;;
-        "Local")
-            ros2_local_setup
-            ;;
-    esac
-    __ros2_finisher
+      case $ROS2_WS_SETUP in
+          "Global")
+              ros2_global_setup
+              ;;
+          "Local")
+              ros2_local_setup
+              ;;
+      esac
+      __ros2_finisher
+    fi
 }
