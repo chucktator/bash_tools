@@ -34,17 +34,22 @@ function __ros2_common() {
     source "/opt/ros/${ROS2_DISTRO}/setup.bash"
 
     # Load the configured ROS DDS middleware implementation
+    __console_log "WARNING" "ROS2 Loader" "Selected Middleware is: '${ROS2_RMW}'"
     case $ROS2_RMW in
         "RTPS")
+            echo "RTPS case"
             ros2_dds_rtps
             ;;
         "OSplice")
+            echo "OSplice case"
             ros2_dds_opensplice
             ;;
         "RTI")
+            echo "RTI case"
             ros2_dds_rti
             ;;
         *)
+            echo "Default case"
             ros2_dds_default
             ;;
     esac
@@ -97,14 +102,16 @@ function r2() {
 
     __console_log "WARNING" "ROS2 Loader" "Configured Middleware is: $ROS2_RMW"
     __console_log "WARNING" "ROS2 Loader" "test variable is: $testVariable"
-    param=("m" "middleware" ROS2_RMW false "Choose the RMW implementation for ROS2 to use" "--no-overwrite")
+    param=("m" "middleware" ROS2_RMW false "Choose the RMW implementation for ROS2 to use" "")
     paramTEST=("t" "testing" testVariable false "This is merely a test parameter." "--default bla")
     #echo "TEST: "$testVariable
     param2=("d" "basedir" ROS2_BASE_DIR false "Specify the base directory of the ROS2 installation." "")
     param3=("w" "workspace" ROS2_WS_SETUP false "Specify whether ROS2 should setup a global or local workspace definition." "")
-    param4=("i" "installdir" ROS2_INSTALL_DIR false  "Specify the install location of ROS2.")
+    param4=("i" "installdir" ROS2_INSTALL_DIR false "Specify the install location of ROS2.")
+	paramTEST2=("f" "flag" FLAG_FUCK true "Test parameter for flags")
+	paramTEST3=("n" "num" NUMBER_FUCK false "Give it a single number")
     #echo "Providing INPUT: $*"
-    __console_parse_parameters "$*" param param2 param3 param4 paramTEST
+    __console_parse_parameters "$*" param param2 param3 param4 paramTEST paramTEST2 paramTEST3
     # Get return value of parameter parser
     result=$?
     if [[ $result == 0 ]]; then

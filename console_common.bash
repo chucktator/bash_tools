@@ -13,7 +13,7 @@ __CONSOLE_TARGET_VARIABLE_INDEX=2
 __CONSOLE_DOC_INDEX=4
 __CONSOLE_OPTS_INDEX=5
 
-__CONSOLE_LOG_LEVEL=20
+__CONSOLE_LOG_LEVEL=1
 
 function __console_parse_parameters() {  # (input, options[...])
     # First parameter must be the options string passed to the calling script, store it and advance 1
@@ -187,16 +187,18 @@ function __console_parse_parameters() {  # (input, options[...])
                # A parameter is required for the current opition, so read it and advance the pointer by 2
                printf -v "${OPTION_CONFIG["$OPTION_INDEX,TARGET_VARIABLE"]}" %s ""
                while [[ ${INPUT_PARTS[(($i+1))]:0:1} != "-" ]]; do
-                   __console_log "DEBUG_FULL" "Param Parser" "$INDENT Possible parameter value would be: ${INPUT_PARTS[$((i+1))]}"
-                   if [[ "${!optionArray[__CONSOLE_TARGET_VARIABLE_INDEX]}" ]]; then
+                   __console_log "DEBUG_FULL" "Param Parser" "$INDENT Possible parameter value would be: '${INPUT_PARTS[$((i+1))]}'"
+                   if [[ "${!OPTION_CONFIG["$OPTION_INDEX,TARGET_VARIABLE"]}" ]]; then
+					   __console_log "DEBUG_FULL" "Param Parser" "Variable is a multi-part string."
                        printf -v "${OPTION_CONFIG["$OPTION_INDEX,TARGET_VARIABLE"]}" %s "${!OPTION_CONFIG["$OPTION_INDEX,TARGET_VARIABLE"]} ${INPUT_PARTS[$((i+1))]}"
                    else
+					   __console_log "DEBUG_FULL" "Param Parser" "Variable is a single entry."
                        printf -v "${OPTION_CONFIG["$OPTION_INDEX,TARGET_VARIABLE"]}" %s "${INPUT_PARTS[$((i+1))]}"
                    fi
                    ((i++))
-                   __console_log "DEBUG_FULL" "Param Parser" "$INDENT Next Possible: ${INPUT_PARTS[$((i+1))]}"
+                   __console_log "DEBUG_FULL" "Param Parser" "$INDENT Next Possible: '${INPUT_PARTS[$((i+1))]}'"
                done
-               __console_log "DEBUG" "Param Parser" "$INDENT Wrote follwing to variable: ${!OPTION_CONFIG["$OPTION_INDEX,TARGET_VARIABLE"]}"
+               __console_log "DEBUG" "Param Parser" "$INDENT Wrote follwing to variable: '${!OPTION_CONFIG["$OPTION_INDEX,TARGET_VARIABLE"]}'"
             elif [[ ${INPUT_PARTS[(($i+1))]:0:1} == "-" && ${OPTION_CONFIG["$OPTION_INDEX,IS_FLAG"]} == true ]]; then
                __console_log "DEBUG_FULL" "Param Parser" "$INDENT Flag case"
                # The current option is only a flag, so set it and advance the pointer by 1
