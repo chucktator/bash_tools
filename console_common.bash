@@ -4,7 +4,7 @@ __CONSOLE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 source $__CONSOLE_DIR/console_debug.bash
 
-__CONSOLE_PRINTER_LINE_LENGTH=110
+__CONSOLE_PRINTER_LINE_LENGTH="$(tput cols)"
 
 __CONSOLE_SHORT_OPT_INDEX=0
 __CONSOLE_LONG_OPT_INDEX=1
@@ -13,7 +13,7 @@ __CONSOLE_TARGET_VARIABLE_INDEX=2
 __CONSOLE_DOC_INDEX=4
 __CONSOLE_OPTS_INDEX=5
 
-__CONSOLE_LOG_LEVEL=1
+__CONSOLE_LOG_LEVEL=20
 
 function __console_parse_parameters() {  # (input, options[...])
     # First parameter must be the options string passed to the calling script, store it and advance 1
@@ -309,10 +309,15 @@ function __console_wait_spinner() {  # (void)
 	local STATE=0
 	local STARTED=0
 
+	# Execute command
+	: $($@ >/dev/null 2>&1 & echo $! > /tmp/bg.pid)
+
+	local BG_PID=`cat /tmp/bg.pid`
+
 	while :
 	do
 
-		if kill -0 $! 2>/dev/null; then
+		if kill -0 $BG_PID >/dev/null 2>&1; then
 
 			if [[ $STARTED -eq 1 ]]; then
 				echo -ne "\b"
@@ -333,7 +338,7 @@ function __console_wait_spinner() {  # (void)
 			fi
 
 			STARTED=1
-			sleep 0.3
+			sleep 0.2
 
 		else
 

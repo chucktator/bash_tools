@@ -3,16 +3,112 @@
 __CONSOLE_PRINTER_LINE_LENGTH=110
 __CONSOLE_PRINTER_NO_ECHO=false
 
-function __console_frame_printer() {  # (text)
+CONSOLE_DEFAULT_COLOR=9
+CONSOLE_BLACK=0
+CONSOLE_RED=1
+CONSOLE_GREEN=2
+CONSOLE_YELLOW=3
+CONSOLE_BLUE=4
+CONSOLE_MAGENTA=5
+CONSOLE_CYAN=6
+CONSOLE_LIGHT_GRAY=7
+CONSOLE_DARK_GRAY=60
+CONSOLE_LIGHT_RED=61
+CONSOLE_LIGHT_GREEN=62
+CONSOLE_LIGHT_YELLOW=63
+CONSOLE_LIGHT_BLUE=64
+CONSOLE_LIGHT_MAGENTA=65
+CONSOLE_LIGHT_CYAN=66
+CONSOLE_WHITE=67
+
+#########################################
+## FOREGROUND COLORS
+#########################################
+##	39 	Default foreground color
+##	30 	Black
+##	31 	Red
+##	32 	Green
+##	33 	Yellow
+##	34 	Blue
+##	35 	Magenta
+##	36 	Cyan
+##	37 	Light gray
+##	90 	Dark gray
+##	91 	Light red
+##	92 	Light green
+##	93 	Light yellow
+##	94 	Light blue
+##	95 	Light magenta
+##	96 	Light cyan
+##	97 	White
+#########################################
+
+#########################################
+## BACKGROUND_COLORS
+#########################################
+##	49 		Default background color
+##	40 		Black
+##	41 		Red
+##	42 		Green
+##	43 		Yellow
+##	44 		Blue
+##	45 		Magenta
+##	46 		Cyan
+##	47 		Light gray
+##	100 	Dark gray
+##	101 	Light red
+##	102 	Light green
+##	103 	Light yellow
+##	104 	Light blue
+##	105 	Light magenta
+##	106 	Light cyan
+##	107 	White
+#########################################
+
+function __console_change_foreground_color() {
+	if [[ -n $1 ]] ; then
+		echo -e -n "\033[$(($1+30))m"
+	fi
+}
+
+function __console_change_background_color() {
+	if [[ -n $1 ]] ; then
+		echo -e -n "\033[$(($1+40))m"
+	fi
+}
+
+function __console_clear_color () {
+	echo -e -n "\e[0m"
+}
+
+function __console_change_color () {
+	__console_change_foreground_color $1
+	__console_change_background_color $2
+}
+
+function __console_frame_printer() {  # (text, fg_frame, bg_frame, fg_text, bg_text)
     if [ "$__CONSOLE_PRINTER_NO_ECHO" != true ] ; then
-        echo -e -n "**  $1"
+		if [[ -n "$2" ]] ; then
+			__console_change_color $2 $3
+		fi
+        echo -e -n "**"
+		__console_clear_color
+		if [[ -n "$4" ]] ; then
+			echo -e -n "Shit"
+			__console_change_color $4 $5
+		fi
+		echo -e -n "  $1  "
         COUNTER=0
         SPACES=$[$__CONSOLE_PRINTER_LINE_LENGTH - 8 - ${#1}]
         while [[ $COUNTER -lt $SPACES ]]; do
             echo -e -n " "
             ((COUNTER++))
         done
-        echo -e "  **"
+		if [[ -n "$2" ]] ; then
+			__console_change_color $2 $3
+		fi
+        echo -e "**"
+		__console_clear_color
         #printf "##  %-$(($__CONSOLE_PRINTER_LINE_LENGTH - 8))s  ##\n" $*
     fi
 }
